@@ -13,11 +13,12 @@ class InputHandler(IOHandler.IOHandler):
 
 	def __init__(self):
 		IOHandler.IOHandler.__init__(self)
-		self.__all =  {	KEYBOARD_UNO : KeyboardHandler(), 
+		self.inQ = Queue.Queue()
+		self.__all =  {	KEYBOARD_UNO : KeyboardHandler(self.inQ), 
 						# A class variable in KeyboardHandler stores the number of keyboards connected
-						KEYBOARD_DOS : KeyboardHandler(), 
+						KEYBOARD_DOS : KeyboardHandler(self.inQ), 
 						##KEYBOARD_QWERTY : QwertyKeyboardHandler(),
-						GPIO_IN : GPIOHandler(),
+						GPIO_IN : GPIOHandler(self.inQ),
 					}
 		# List of all threads that want to listen to input changes. Synchronized queue maintained for each thread.
 		# This thread puts into queue, the listener thread listens for it.
@@ -36,18 +37,31 @@ class InputHandler(IOHandler.IOHandler):
 
 	# Main loop of the thread.
 	def detectInputChange(self):
+		# Device Handlers must return None if device not connected
 		while True:
-			# Device Handlers must return None if device not connected
-			currentInput = [each.getInput() for each in self.__all]
-			ifChanged = False
-			for idx in xrange(len(self._all)):
-				new = currentInput[idx]
-				old = self.__state[idx]
-				# Each Device Handler must have a function ifStateEqual.
-				if not self.__all[idx].ifStateEqual(old, new):
-					ifChanged = True
-					self.setState(idx, new)
-			if ifChanged:
-				for q in self.active_listeners:
-					q.put(deepcopy(self.__state))
-			self.getAvailable()
+			# This must be a dictionary
+			newInput = self.inQ.get()
+			if 'signal' in newInput.keys():
+				if newInput['signal'] == DEV_OFF:
+					if newInput['sourceID'] in self.__available:
+						self.__available.remove(newInput['sourceID'])
+				elif newInput['signal'] == DEV_CONNECT:
+					self.__available.add(newInput['sourceID'])
+				continue
+			for q in self.active_listeners:
+				q.put(deepcopy(newInput))
+
+		# Still need to call self.getAvailable periodically 
+
+		# for idx in xrange(len(self._all)):
+		# 	if 
+		# 	new = currentInput[idx]
+		# 	old = self.__state[idx]
+		# 	# Each Device Handler must have a function ifStateEqual.
+		# 	if not self.__all[idx].ifStateEqual(old, new):
+		# 		ifChanged = True
+		# 		self.setState(idx, new)
+		# if ifChanged:
+		# 	for q in self.active_listeners:
+		# 		q.put(deepcopy(self.__state))
+		# self.getAvailable()

@@ -9,15 +9,16 @@ class IOHandler(threading.Thread)
 		threading.Thread.__init__(self)
 		# Defined in subclass InputHandler and OutputHandler
 		self.__all =  {}
-		self.__available = getAvailable()
+		self.__available = set([])
 		# Defined in subclass. Array of size _all. None if device not connected.
 		self.__state = [None for each in self.__all]
 
 
+	# Not required now, in the interrupt model
 	def getAvailable(self):
 		# Each object of the Handler Class spawns a course granularity thread for monitoring changes in availability 
 		self.__available = {inp:self.__all[inp] for inp in self.all.keys() if self.__all[inp].available is not None}
-		return self.available.keys()
+		return self.__available.keys()
 
 	def inout(self, ID, buf, **args):
 		try:
