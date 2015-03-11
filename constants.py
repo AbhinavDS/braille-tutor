@@ -2,7 +2,7 @@
 # Input peripherals start from 100
 KEYBOARD_UNO = 100
 KEYBOARD_DOS = 101
-##KEYBOARD_QWERTY = 102
+KEYBOARD_QWERTY = 102
 GPIO_IN = 103
 
 

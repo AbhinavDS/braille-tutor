@@ -4,13 +4,16 @@ import Queue
 class IO(object):
 
 	def __init__(self, InputHandlerObject, OutputHandlerObject):
-		InputHandlerObject.addQueue()
+		# IS IT NEEDED?!!
+		# InputHandlerObject.addQueue()
 		self.__input = InputHandlerObject
 		self.__inputState = self.__input.getState()
 		self.inputQueue = self.__input.addQueue()
 
 		self.__output = OutputHandlerObject
 		self.__outState = self.__output.getState()
+
+		self.__input.start()
 
 	# Args to allow flexibility. Example: store meta information for Braille output
 	# Also, the rectangle information for LCD
